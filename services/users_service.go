@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"main/domain/users"
 	"main/utils/errors"
 )
@@ -22,4 +23,35 @@ func CreateUser(user users.User) (*users.User, *errors.RestErr) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func UpdateUser(isPartial bool, user users.User) (*users.User, *errors.RestErr) {
+	current, err := GetUser(user.Id)
+	fmt.Printf("current: %v\n", current)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("service update user: %v\n", user)
+	if isPartial {
+		if user.FirstName != "" {
+			current.FirstName = user.FirstName
+		}
+		if user.LastName != "" {
+			current.LastName = user.LastName
+		}
+		if user.Email != "" {
+			current.Email = user.Email
+		}
+	} else {
+		current.FirstName = user.FirstName
+		current.LastName = user.LastName
+		current.Email = user.Email
+	}
+
+	fmt.Printf("new current: %v\n", current)
+	if err := current.Update(); err != nil {
+		return nil, err
+	}
+
+	return current, nil
 }

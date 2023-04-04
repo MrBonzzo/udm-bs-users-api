@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"main/datasources/mysql/users_db"
 	"main/utils/date_utils"
 	"main/utils/errors"
@@ -10,6 +11,7 @@ import (
 const (
 	queryInsertUser = "INSERT INTO users(first_name, last_name, email, date_created) VALUES(?, ?, ?, ?);"
 	querySelectUser = "SELECT id, first_name, last_name, email, date_created FROM users WHERE id = ?"
+	queryUpdateUser = "UPDATE users SET first_name=?, last_name=?, email=? WHERE id=?"
 )
 
 var (
@@ -54,5 +56,20 @@ func (user *User) Get() *errors.RestErr {
 		return mysql_utils.ParseError(getErr)
 	}
 
+	return nil
+}
+
+func (user *User) Update() *errors.RestErr {
+	fmt.Printf("to query user: %v\n", user)
+	stmt, err := users_db.Client.Prepare(queryUpdateUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
+	}
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.Id)
+	if updateErr != nil {
+		return mysql_utils.ParseError(updateErr)
+	}
 	return nil
 }
