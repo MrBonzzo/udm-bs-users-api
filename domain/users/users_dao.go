@@ -1,7 +1,6 @@
 package users
 
 import (
-	"fmt"
 	"main/datasources/mysql/users_db"
 	"main/utils/date_utils"
 	"main/utils/errors"
@@ -10,8 +9,9 @@ import (
 
 const (
 	queryInsertUser = "INSERT INTO users(first_name, last_name, email, date_created) VALUES(?, ?, ?, ?);"
-	querySelectUser = "SELECT id, first_name, last_name, email, date_created FROM users WHERE id = ?"
+	querySelectUser = "SELECT id, first_name, last_name, email, date_created FROM users WHERE id=?"
 	queryUpdateUser = "UPDATE users SET first_name=?, last_name=?, email=? WHERE id=?"
+	queryDeleteUser = "DELETE FROM users WHERE id=?"
 )
 
 var (
@@ -60,7 +60,6 @@ func (user *User) Get() *errors.RestErr {
 }
 
 func (user *User) Update() *errors.RestErr {
-	fmt.Printf("to query user: %v\n", user)
 	stmt, err := users_db.Client.Prepare(queryUpdateUser)
 	if err != nil {
 		return errors.NewInternalServerError(err.Error())
@@ -70,6 +69,19 @@ func (user *User) Update() *errors.RestErr {
 	_, updateErr := stmt.Exec(user.FirstName, user.LastName, user.Email, user.Id)
 	if updateErr != nil {
 		return mysql_utils.ParseError(updateErr)
+	}
+	return nil
+}
+
+func (user *User) Delete() *errors.RestErr {
+	stmt, err := users_db.Client.Prepare(queryDeleteUser)
+	if err != nil {
+		return errors.NewInternalServerError(err.Error())
+	}
+	defer stmt.Close()
+
+	if _, deleteErr := stmt.Exec(user.Id); deleteErr != nil {
+		return mysql_utils.ParseError(deleteErr)
 	}
 	return nil
 }
