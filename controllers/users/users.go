@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"main/domain/users"
 	"main/services"
 	"main/utils/errors"
@@ -87,4 +88,15 @@ func Delete(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+func Search(c *gin.Context) {
+	status := c.Query("status")
+	fmt.Printf("status %v\n", status)
+	users, err := services.Search(status)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(http.StatusOK, users)
 }
